@@ -142,7 +142,22 @@ WHERE s.credits > (
 	FROM subjects s2
 );
 
--- C23:
+-- C23: Buscar personas cuyo DNI termina en la letra A.
+SELECT p.dni, p.first_name, p.last_name
+FROM people p 
+WHERE p.dni LIKE '%A';
+
+-- C24: Filtrar asignaturas cuyo nombre empieza con la palabra “Fundamentos”.
+SELECT s.subject_name
+FROM subjects s
+WHERE s.subject_name LIKE 'Fundamentos%';
+
+-- C25: Buscar personas cuyo nombre tiene exactamente 5 letras.
+SELECT p.dni, p.first_name, p.last_name
+FROM people p 
+WHERE p.first_name LIKE '_____';
+
+-- C26: 
 
 
 -- EJERCICIOS PROPUESTOS
