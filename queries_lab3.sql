@@ -250,8 +250,50 @@ SELECT vsg.first_name, vsg.last_name, AVG(vsg.grade_value) AS student_mean
 FROM v_students_grades AS vsg
 GROUP BY vsg.person_id, vsg.first_name, vsg.last_name;
 
--- C30: 
-	   
+-- ORDER BY, LIMIT y OFFSET: Control de resultados
+-- Estas cláusulas controlan el orden y paginación de los resultados.
+
+
+-- C30: Ordenar todas las notas de menor a mayor valor.
+SELECT g.grade_id, g.student_id, g.grade_value, g.exam_call
+FROM grades g
+ORDER BY g.grade_value ASC;
+
+-- C31: Ordenar las notas de mayor a menor.
+SELECT g.grade_id, g.student_id, g.grade_value, g.exam_call
+FROM grades g
+ORDER BY g.grade_value DESC;
+
+-- C32: Mostrar solo las 5 notas más altas.
+SELECT g.grade_id, g.student_id, g.grade_value, g.exam_call
+FROM grades g
+ORDER BY g.grade_value DESC
+LIMIT 5;
+
+-- C33: Listar notas aprobadas ordenadas por apellido y nombre del estudiante.
+SELECT p.first_name, p.last_name, g.grade_value, g.exam_call
+FROM grades g
+JOIN students s ON g.student_id = s.student_id 
+JOIN people p ON s.student_id = p.person_id 
+WHERE g.grade_value >= 5
+ORDER BY p.last_name ASC, p.first_name ASC;
+
+-- C34: Implementa paginación mostrando las notas 6-10 (segunda página de 5 elementos).
+SELECT g.grade_id, g.student_id, g.grade_value
+FROM grades g
+ORDER BY g.grade_value DESC
+LIMIT 5 OFFSET 5;
+
+-- C35: Mostrar las notas 11-15 (tercera página).
+SELECT g.grade_id, g.student_id, g.grade_value
+FROM grades g
+ORDER BY g.grade_value DESC
+LIMIT 5 OFFSET 10;
+
+-- C36: Ordenar grupos por año (descendente) y luego por nombre (ascendente).
+SELECT gp.group_name, gp.activity, gp.academic_year 
+FROM groups gp
+ORDER BY gp.academic_year DESC, gp.group_name ASC;
 
 
 -- EJERCICIOS PROPUESTOS
