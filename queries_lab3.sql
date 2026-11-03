@@ -133,8 +133,16 @@ WHERE ge.group_id IN (
 );
 
 -- C22: Encontrar asignaturas que tengan más créditos que el promedio.
-SELECT DISTINCT s.subject_name
-FROM
+-- 1. calcular el promedio de créditos para todas las asignaturas mediante subconsulta
+-- 2. seleccionar las asignaturas con creditos > promedio calculado
+SELECT s.subject_name, s.credits
+FROM subjects s 
+WHERE s.credits > (
+	SELECT AVG(s2.credits) AS avg_subject_credits
+	FROM subjects s2
+);
+
+-- C23:
 
 
 -- EJERCICIOS PROPUESTOS
@@ -144,33 +152,46 @@ SELECT p.first_name, p.last_name, AVG(g.grade_value) AS average_grade
 FROM people p 
 JOIN students s ON s.student_id = p.person_id 
 JOIN grades g ON g.student_id = s.student_id 
-WHERE g.grade_value >= 5
-GROUP BY p.person_id;
+GROUP BY p.person_id
+HAVING MIN(g.grade_value) >= 5;
 
 -- 2. Profesores que solo imparten teoría (no laboratorios).
-SELECT p.first_name, p.last_name
+SELECT DISTINCT p.first_name, p.last_name
 FROM people p
 JOIN professors prf ON prf.professor_id = p.person_id 
 JOIN teaching_loads tl ON tl.professor_id = prf.professor_id 
 JOIN groups g ON g.group_id = tl.group_id 
 WHERE g.activity = 'Teoría'
-GROUP BY p.person_id;
+	AND prf.professor_id NOT IN (
+		SELECT tl_lab.professor_id
+		FROM teaching_loads tl_lab
+		JOIN groups g_lab ON g_lab.group_id = tl_lab.group_id 
+		WHERE g_lab.activity = 'Laboratorio'
+);
 
 -- 3. Asignaturas sin grupos creados (usar LEFT JOIN)
-SELECT DISTINCT sb.subject_id, sb.subject_name
+SELECT sb.subject_id, sb.subject_name
 FROM subjects sb
-LEFT JOIN groups g ON g.subject_id <> sb.subject_id
+LEFT JOIN groups g ON g.subject_id = sb.subject_id
+WHERE g.group_id IS NULL 
 ORDER BY sb.subject_id ASC;
 
 -- 4. Nota media de cada grado en el año 2024.
 
 -- 5. Estudiantes con la mejor nota de cada asignatura.
-SELECT p.first_name, p.last_name, AVG(grd.grade_value) AS student_grade
-FROM people p
-JOIN students s ON s.student_id = p.person_id 
-JOIN grades grd ON grd.student_id = s.student_id
-JOIN subject_enrollments se ON se.student_id = grd.student_id 
-GROUP BY se.subject_id
-ORDER BY student_grade DESC;
+-- 		A. Subconsulta para obtener la máxima nota por cada asignatura
+-- 		B. Seleccionar los estudiantes agrupandolos junto a su nota para cada asignatura
+
+SELECT p.first_name, p.last_name, max_grade, subject
+FROM people p 
+JOIN students s ON s.student_id = p.person_id
+HAVING sbb.max_grade, sbb.subject IN (
+	SELECT MAX(g.grade_value) AS max_grade, sb.subject_name AS subject
+	FROM grades g
+	JOIN groups gr ON g.group_id = gr.group_id
+	JOIN subjects sb ON gr.subject_id = sb.subject_id
+	GROUP BY sb.subject_id, sb.subject_name
+) AS sbb;
+
 
 
