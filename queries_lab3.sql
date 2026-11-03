@@ -157,7 +157,16 @@ SELECT p.dni, p.first_name, p.last_name
 FROM people p 
 WHERE p.first_name LIKE '_____';
 
--- C26: 
+-- C26: Buscar grupos del año académico 2024.
+SELECT g.group_name, g.activity, g.academic_year 
+FROM groups g 
+WHERE g.academic_year = 2024;
+
+-- C27: Buscar grupos entre 2020 y 2023, ordenados por año.
+SELECT g.group_name, g.activity, g.academic_year
+FROM groups g 
+WHERE g.academic_year BETWEEN 2020 AND 2023
+ORDER BY g.academic_year;
 
 
 -- EJERCICIOS PROPUESTOS
