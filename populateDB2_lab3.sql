@@ -1,9 +1,9 @@
---
+
 -- Autor: David Ruiz
 -- Fecha: Enero 2026
 -- Descripción: Datos adicionales para GradesDB para cubrir consultas de L3
 --              Este script añade datos sin borrar los existentes de populateDB.sql
---
+
 USE grados;
 
 -- Eliminar datos adicionales si ya existen (hacer el procedimiento idempotente)

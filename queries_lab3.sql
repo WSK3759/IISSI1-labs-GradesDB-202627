@@ -1,5 +1,5 @@
 -- 
--- Autor: [Tu Nombre]
+-- Autor: Jesús Núñez Pelayo
 -- Fecha: Enero 2026
 -- Descripción: Consultas SQL de ejemplo para GradesDB
 --              Cubre conceptos de consultas simples y avanzadas
@@ -294,6 +294,114 @@ LIMIT 5 OFFSET 10;
 SELECT gp.group_name, gp.activity, gp.academic_year 
 FROM groups gp
 ORDER BY gp.academic_year DESC, gp.group_name ASC;
+
+-- JOIN: Consultas avanzadas con múltiples tablas
+-- Los JOIN permiten combinar filas de diferentes tablas basándose en relaciones entre ellas.
+
+-- C37: Listar estudiantes y los grupos en los que están matriculados.
+-- 1. seleccionar nombres y apellidos de estudiantes y cada uno de los grupos en los que están matriculados
+-- 2. necesito people, students y groups
+-- 3. sin condiciones ni agregación
+
+-- SELECT p.first_name, p.last_name, g.group_name, g.activity, g.academic_year
+-- FROM groups g
+-- JOIN group_enrollments ge ON g.group_id = ge.group_id
+-- JOIN students s ON ge.student_id = s.student_id 
+-- JOIN people p ON s.student_id = p.person_id;
+
+-- Consulta 37: Estudiantes con sus grupos (INNER JOIN)
+SELECT 
+    st.first_name,
+    st.last_name,
+    gr.group_name,
+    gr.activity,
+    gr.academic_year
+FROM v_students st
+JOIN group_enrollments ge ON st.student_id = ge.student_id
+JOIN groups gr ON ge.group_id = gr.group_id;
+
+-- C38: Mostrar asignaturas junto con el nombre de su grado.
+-- 1. COLUMNAS s.subject_name, d.degree_name (donde para cada grado habrá muchas asignaturas)
+-- 2. relaciones: subjects y degrees
+-- 3. Sin filtros ni agregaciones ni filtros de grupos resultantes
+
+-- SELECT sb.subject_name, d.degree_name
+-- FROM subjects sb 
+-- JOIN degrees d ON sb.degree_id = d.degree_id
+-- ORDER BY d.degree_name, sb.course ;
+
+SELECT 
+    d.degree_name,
+    s.subject_name,
+    s.acronym,
+    s.credits,
+    s.course,
+    s.subject_type
+FROM degrees d
+JOIN subjects s ON d.degree_id = s.degree_id
+ORDER BY d.degree_name, s.course;
+
+-- C39: Mostrar notas con nombres de estudiante y asignatura.
+-- SELECT vsg.grade_value, vsg.first_name, vsg.last_name, vsg.subject_name 
+-- FROM v_students_grades vsg ;
+
+SELECT vs.first_name, vs.last_name, s.subject_name, s.acronym, g.grade_value
+FROM grades g
+JOIN v_students vs ON g.student_id = vs.student_id 
+JOIN groups gr ON g.group_id = gr.group_id
+JOIN subjects s ON gr.subject_id = s.subject_id;
+
+-- C40: Listar profesores y los grupos que enseñan.
+-- columnas: nombre y apellidos de profesores e informacion completa de sus grupos
+-- relaciones: vista v_proffesors, teaching_loads y groups
+-- sin filtros ni agregaciones
+SELECT vp.first_name, vp.last_name, vp.category, s.subject_name, gp.group_name, gp.activity, gp.academic_year 
+FROM v_professors vp 
+JOIN teaching_loads tl ON vp.professor_id = tl.professor_id 
+JOIN groups gp ON tl.group_id = gp.group_id
+JOIN subjects s ON gp.subject_id = s.subject_id ;
+
+-- Consulta 40: Profesores con grupos que imparten
+SELECT 
+    pr.first_name,
+    pr.last_name,
+    pr.category,
+    s.subject_name,
+    gr.group_name,
+    gr.activity,
+    tl.credits AS teaching_credits
+FROM v_professors pr
+JOIN teaching_loads tl ON pr.professor_id = tl.professor_id
+JOIN groups gr ON tl.group_id = gr.group_id
+JOIN subjects s ON gr.subject_id = s.subject_id;
+
+-- C41: Mostrar qué estudiantes están matriculados en qué asignaturas.
+-- 1. columnas: informacion de estudiantes e información de asignaturas, 
+-- 2. VISTA v_students, groups, subjects
+-- SELECT DISTINCT vs.first_name, vs.last_name, sb.subject_name, sb.acronym, sb.subject_type, sb.credits, sb.course
+-- FROM v_students vs 
+-- JOIN group_enrollments ge ON vs.student_id = ge.student_id 
+-- JOIN groups g ON ge.group_id = g.group_id 
+-- JOIN subjects sb ON g.subject_id = sb.subject_id
+-- ORDER BY vs.last_name, sb.subject_name ;
+
+-- Consulta 41: Estudiantes matriculados en asignaturas (a través de grupos)
+SELECT DISTINCT
+    st.first_name,
+    st.last_name,
+    s.subject_name,
+    s.acronym,
+    gr.academic_year
+FROM v_students st
+JOIN group_enrollments ge ON st.student_id = ge.student_id
+JOIN groups gr ON ge.group_id = gr.group_id
+JOIN subjects s ON gr.subject_id = s.subject_id
+ORDER BY st.last_name, s.subject_name;
+
+-- C42: Mostrar todos los estudiantes, incluso si no tienen notas registradas. (LEFT JOIN)
+SELECT vs.first_name, vs.last_name, gr.grade_value, gr.exam_call 
+FROM v_students vs 
+LEFT JOIN grades gr ON vs.student_id = gr.student_id ;
 
 
 -- EJERCICIOS PROPUESTOS
