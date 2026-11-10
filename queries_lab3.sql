@@ -403,6 +403,134 @@ SELECT vs.first_name, vs.last_name, gr.grade_value, gr.exam_call
 FROM v_students vs 
 LEFT JOIN grades gr ON vs.student_id = gr.student_id ;
 
+-- C43: Calcular la nota media y total de notas por estudiante.
+-- 1. select: calculo de grade.value, contar person_id por estudiante
+-- 2. relaciones: grades, v_students_grades
+
+-- SELECT vsg.first_name, vsg.last_name, AVG(vsg.grade_value) AS average_grade, COUNT(vsg.person_id) AS total_grades
+-- FROM v_students_grades vsg 
+-- GROUP BY vsg.person_id;
+
+-- Consulta 43: Nota media de cada estudiante
+SELECT 
+    st.first_name,
+    st.last_name,
+    AVG(g.grade_value) AS average_grade,
+    COUNT(*) AS total_grades
+FROM v_students st
+JOIN grades g ON st.student_id = g.student_id
+GROUP BY st.student_id, st.first_name, st.last_name;
+
+-- C44: Contar cuántos estudiantes hay por cada método de acceso.
+
+-- SELECT s.access_method, COUNT(s.student_id) AS total_students
+-- FROM students s 
+-- GROUP BY s.access_method;
+
+-- Consulta 44: Número de estudiantes por método de acceso
+SELECT 
+    st.access_method,
+    COUNT(*) AS total_students
+FROM students st
+GROUP BY st.access_method;
+
+
+-- C45: Contar cuántas asignaturas tiene cada grado.
+-- 1. seleccionar: nombre de asignatura, acronimo, nombre de grado
+
+-- SELECT DISTINCT d.degree_name, COUNT(s.subject_id) AS total_subjects
+-- FROM degrees d 
+-- JOIN subjects s ON s.degree_id = d.degree_id
+-- GROUP BY d.degree_name 
+-- ORDER BY d.degree_name, s.subject_name;
+
+-- Consulta 45: Número de asignaturas por grado
+SELECT 
+    d.degree_name,
+    COUNT(*) AS total_subjects
+FROM degrees d
+JOIN subjects s ON d.degree_id = s.degree_id
+GROUP BY d.degree_id, d.degree_name;
+
+-- C46: Contar cuántos grupos tiene cada asignatura.
+-- 1. seleccionar: nombre asignatura, contar (group_id)
+-- 2. relaciones: subjects, groups, 
+-- 3. Agrupar por: asignatura
+-- 4. ordenar alfabeticamente por asignatura
+
+-- SELECT s.subject_name, COUNT(g.group_id) AS total_groups
+-- FROM groups g
+-- JOIN subjects s ON s.subject_id = g.subject_id 
+-- GROUP BY s.subject_id, s.subject_name, s.acronym;
+
+-- Consulta 46: Número de grupos por asignatura
+SELECT 
+    s.subject_name,
+    s.acronym,
+    COUNT(*) AS total_groups
+FROM subjects s
+JOIN groups gr ON s.subject_id = gr.subject_id
+GROUP BY s.subject_id, s.subject_name, s.acronym;
+
+-- C47: Calcular la nota media en cada convocatoria de examen.
+-- 1. selecciono: grade_value, exam_call para saber la nota media en cada convocatoria
+-- 2. relaciones: grades
+-- 3. agrupacion: por exam_call (convocatoria)
+
+-- SELECT g.exam_call, AVG(g.grade_value) AS avg_grade
+-- FROM grades g
+-- GROUP BY g.exam_call;
+
+SELECT 
+    g.exam_call,
+    AVG(g.grade_value) AS average_grade,
+    COUNT(*) AS total_grades
+FROM grades g
+GROUP BY g.exam_call;
+
+-- C48: Desglosa la nota media por asignatura y convocatoria.
+-- 1. necesito: grade_value, la asignatura a la que corresponde dicha nota, y la su convocatoria
+-- 2. relaciones: grades, groups, subjects
+-- 3. agrupar por: primero asignatura, luego convocatoria
+SELECT s.subject_name, g.exam_call, AVG(g.grade_value) AS avg_grade
+FROM grades g 
+JOIN groups gr ON g.group_id = gr.group_id 
+JOIN subjects s ON gr.subject_id = s.subject_id 
+GROUP BY s.subject_name , g.exam_call
+ORDER BY s.subject_name , g.exam_call ;
+
+-- C49: Contar cuántos estudiantes distintos hay en cada año académico.
+-- 1. seleccionar DISTINTO: contar (student_id) distinto para cada año academico, perteneciente a un grupo
+-- 2. relaciones: students, groups y group_enrollments
+-- 3. agrupar por: año académico, luego grupo
+
+-- SELECT DISTINCT g.academic_year, COUNT(st.student_id) AS total_students
+-- FROM groups g
+-- JOIN group_enrollments ge ON g.group_id = ge.group_id 
+-- JOIN students st ON ge.student_id = st.student_id
+-- GROUP BY g.academic_year;
+
+-- Consulta 49: Número de estudiantes por año académico
+SELECT gr.academic_year, COUNT(DISTINCT ge.student_id) AS total_students
+FROM groups gr
+JOIN group_enrollments ge ON gr.group_id = ge.group_id
+GROUP BY gr.academic_year
+ORDER BY gr.academic_year DESC;
+
+-- C50: Sumar los créditos que imparte cada profesor.
+-- 1. seleccionar: cada profesor con nombre y apellidos y categoria, SUM(credits de teaching_loads)
+-- 2. relaciones: people, professors, teaching_loads
+-- 3. agrupar por: group_id de teaching_loads
+select p.first_name, p.last_name, pf.category, SUM(tl.credits) AS total_credits
+FROM people p 
+JOIN professors pf ON p.person_id = pf.professor_id 
+JOIN teaching_loads tl ON pf.professor_id = tl.professor_id 
+GROUP BY tl.professor_id;
+
+-- C51: 
+
+
+
 
 -- EJERCICIOS PROPUESTOS
 
