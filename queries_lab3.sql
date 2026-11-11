@@ -527,10 +527,53 @@ JOIN professors pf ON p.person_id = pf.professor_id
 JOIN teaching_loads tl ON pf.professor_id = tl.professor_id 
 GROUP BY tl.professor_id;
 
--- C51: 
+-- C51: Mostrar solo estudiantes cuya nota media supera el 7.
+-- 1. seleccionar: nombre y apellidos, AVG(nota media) para ese estudiante
+-- 2. relaciones: v_students, grades
+-- 3. agrupacion: agrupar por id de estudiante
+-- 4. filtrado: teniendo que su nota_media > 7
+SELECT st.first_name, st.last_name, AVG(g.grade_value) AS avg_grade
+FROM v_students st
+JOIN grades g ON st.student_id = g.student_id 
+GROUP BY st.student_id , st.first_name , st.last_name 
+HAVING avg_grade > 7;
+
+-- C52: Filtrar asignaturas que tienen más de 3 grupos creados.
+-- 1. seleccion: nombre asignatura, COUNT(id grupo) AS total_groups
+-- 2. relaciones: subjects, groups
+-- 3. agrupar por: id_asignatura, nombre_asignatura
+-- 4. filtrar por: teniendo total_groups > 3;
+SELECT sb.subject_name, COUNT(gr.group_id) AS total_groups
+FROM subjects sb 
+JOIN groups gr ON sb.subject_id = gr.subject_id 
+GROUP BY sb.subject_id , sb.subject_name 
+HAVING total_groups > 3;
+
+-- C53: Identificar grupos con más de 15 estudiantes matriculados.
+-- 1. seleccionar: nombres de grupo, contar (id estudiante) asociado a cada grupo
+-- 2. relaciones: groups, students, groups_enrollments
+-- 3. agrupar por: id de grupo, nombre de grupo
+-- 4. filtrar por: teniendo contar(id estudiante) > 15
+SELECT g.group_name, g.activity , COUNT(ge.student_id) as total_students
+FROM groups g
+JOIN group_enrollments ge ON g.group_id = ge.group_id
+GROUP BY ge.group_id, g.group_name 
+HAVING total_students > 15;
 
 
+-- C54: Filtrar asignaturas cuya nota media es superior a 5.5.
+-- 1. seleccionar: nombre asignatura, acronimo, PROMEDIO(grade_value) asociando cada promedio calculado con el id de asignatura al que pertenece
+-- 2. relaciones: subjects, grades, groups
+-- 3. agrupar por: id de asignatura, nombre de asignatura
+-- 4. filtrar por: PROMEDIO(grade_value) > 5.5
+SELECT sb.subject_name, sb.acronym, AVG(g.grade_value) as average_grade
+FROM subjects sb
+JOIN groups gr ON sb.subject_id = gr.subject_id 
+JOIN grades g ON gr.group_id = g.group_id
+GROUP BY sb.subject_id , sb.subject_name 
+HAVING average_grade > 5.5;
 
+-- C55: 
 
 -- EJERCICIOS PROPUESTOS
 
