@@ -573,7 +573,116 @@ JOIN grades g ON gr.group_id = g.group_id
 GROUP BY sb.subject_id , sb.subject_name 
 HAVING average_grade > 5.5;
 
--- C55: 
+-- CONSULTAS COMPLEJAS COMBINADAS
+
+-- C55: Encontrar las tres asignaturas con 
+-- más estudiantes matriculados en grupos del año 2024.
+
+-- 1. seleccionar: nombre_asignatura, acronimo, contar(id estudiante) enrolado en una asignatura
+-- 2. relaciones: subjects, group_enrollments, groups
+-- 3. agrupar por: asignatura id, nombre asignatura
+-- 4. filtrar por (WHERE): año = 2024
+-- 4. ordenar por: conteo numero estudiantes desc
+-- 5. limitar: 3
+
+SELECT sb.subject_name, COUNT(DISTINCT ge.student_id) AS total_students, gr.academic_year
+FROM subjects sb 
+JOIN groups gr ON sb.subject_id = gr.subject_id 
+JOIN group_enrollments ge ON gr.group_id = ge.group_id
+WHERE gr.academic_year = 2024
+GROUP BY sb.subject_id, sb.subject_name 
+ORDER BY total_students DESC
+LIMIT 3;
+
+-- COUNT(DISTINCT ge.student_id) evita contar varias veces 
+-- a un estudiante que pertenezca a más de un grupo de 
+-- la misma asignatura.
+
+-- C56: Identificar estudiantes con más de 1 matrícula de honor.
+-- 1. seleccionar: nombre, apellidos, COUNT(id estudiante), grade_value
+-- 2. relaciones: people, students, grades
+-- 3. filtrar (WHERE): filas que no cumplan with_honors = 1
+-- 4. agrupar por: id estudiante
+-- 5. filtrar por: contador > 1
+SELECT p.first_name, p.last_name, COUNT(g.student_id) AS total_honor_grades
+FROM people p 
+JOIN students s ON p.person_id = s.student_id 
+JOIN grades g ON s.student_id = g.student_id 
+WHERE g.with_honors = 1
+GROUP BY s.student_id, p.first_name, p.last_name 
+HAVING total_honor_grades > 1;
+
+-- C57: Ordenar grados por número de estudiantes matriculados en 2024.
+-- 1. seleccionar: nombre grado, COUNT(id estudiante) matriculado en dicho grado, año academico
+-- 2. relaciones: grades, groups, group_enrollments, subjects
+-- 3. filtrar: where año academico = 2024
+-- 4. agrupar por: id grado, nombre grados
+-- 5. ordenar por: contador de estudiantes DESC
+
+SELECT d.degree_name, COUNT(DISTINCT ge.student_id) AS total_degree_students
+FROM degrees d 
+JOIN subjects s ON d.degree_id = s.degree_id
+JOIN groups g ON s.subject_id = g.subject_id
+JOIN group_enrollments ge ON g.group_id = ge.group_id
+WHERE g.academic_year = 2024
+GROUP BY d.degree_id, d.degree_name 
+ORDER BY total_degree_students DESC;
+
+-- C58: Mostrar la nota más alta de cada estudiante, ordenada descendentemente.
+-- 1. seleccionar: nombre, apellido, max(nota de un estudiante)
+-- 2. relaciones: people, students, grades
+-- 3. ordenar por: nota
+SELECT p.first_name, p.last_name, MAX(g.grade_value) AS highest_grade
+FROM people p
+JOIN students s ON p.person_id = s.student_id 
+JOIN grades g ON s.student_id = g.student_id
+GROUP BY s.student_id , p.first_name , p.last_name 
+ORDER BY highest_grade DESC;
+
+-- C59: Identificar profesores que imparten en más de 1 grupo.
+-- 1. seleccionar: nombre, apellido, categoria, COUNT(id grupo)
+-- 2. relaciones: people, professors, teaching_loads, groups
+-- 3. agrupar por: id profesor, nombre, apellido
+-- 4. filtrar por: contador > 1
+SELECT p.first_name, p.last_name, pf.category, COUNT(DISTINCT tl.group_id) AS total_groups
+FROM people p 
+JOIN professors pf ON p.person_id = pf.professor_id 
+JOIN teaching_loads tl ON pf.professor_id = tl.professor_id 
+JOIN groups g ON tl.group_id = g.group_id 
+GROUP BY pf.professor_id , p.first_name , p.last_name 
+HAVING total_groups > 1;
+
+-- C60: Mostrar asignaturas que pertenecen a grados con más de 15 asignaturas
+-- 1. selec: nombre asignatura, 
+-- 2. relaciones: subjects, subconsulta
+-- 3. subconsulta: 1. nombre grados, count(id asignatura)
+
+SELECT s.subject_name, d.degree_name
+FROM subjects s
+JOIN degrees d ON s.degree_id = d.degree_id 
+WHERE d.degree_id IN (
+	SELECT d2.degree_id
+	FROM degrees d2 
+	JOIN subjects s2 ON d2.degree_id = s2.degree_id 
+	GROUP BY d2.degree_id, d2.degree_name 
+	HAVING COUNT(DISTINCT s2.subject_id) > 15
+	);
+
+-- Consulta 60: Asignaturas que pertenecen a grados con más de 15 asignaturas
+SELECT DISTINCT s.subject_name, d.degree_name
+FROM subjects s
+JOIN degrees d ON s.degree_id = d.degree_id
+WHERE d.degree_id IN (
+    SELECT degree_id
+    FROM subjects
+    GROUP BY degree_id
+    HAVING COUNT(*) > 15
+);
+
+
+
+
+
 
 -- EJERCICIOS PROPUESTOS
 
