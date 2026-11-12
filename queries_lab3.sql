@@ -680,10 +680,6 @@ WHERE d.degree_id IN (
 );
 
 
-
-
-
-
 -- EJERCICIOS PROPUESTOS
 
 -- 1. Estudiantes que nunca han suspendido (todas sus notas ≥ 5).
@@ -716,21 +712,55 @@ WHERE g.group_id IS NULL
 ORDER BY sb.subject_id ASC;
 
 -- 4. Nota media de cada grado en el año 2024.
+-- 		A. seleccionar: AVG(grade_value), nombre grado, 
+--		B. relaciones: grades, degrees, groups, subjects
+--		C. filtrar: WHERE año academico = 2024
+--		D. agrupar por: id grado, nombre grado
+SELECT AVG(g.grade_value) AS avg_grade , d.degree_name
+FROM grades g 
+JOIN groups gp ON gp.group_id = g.group_id 
+JOIN subjects s ON gp.subject_id = s.subject_id 
+JOIN degrees d ON s.degree_id = d.degree_id 
+WHERE gp.academic_year = 2024
+GROUP BY d.degree_id , d.degree_name ;
+
 
 -- 5. Estudiantes con la mejor nota de cada asignatura.
--- 		A. Subconsulta para obtener la máxima nota por cada asignatura
--- 		B. Seleccionar los estudiantes agrupandolos junto a su nota para cada asignatura
+--		A. selec: nombre, apellido, MAX(nota) , asignatura
+-- 		B. relaciones: people, students, grades, subjects, groups
+-- 		C. agrupar por: id asignatura, nombre asignatura
+--		D. subconsulta: maxima nota para cada asignatura agrupando por subject_id
 
-SELECT p.first_name, p.last_name, max_grade, subject
-FROM people p 
-JOIN students s ON s.student_id = p.person_id
-HAVING sbb.max_grade, sbb.subject IN (
-	SELECT MAX(g.grade_value) AS max_grade, sb.subject_name AS subject
-	FROM grades g
-	JOIN groups gr ON g.group_id = gr.group_id
-	JOIN subjects sb ON gr.subject_id = sb.subject_id
-	GROUP BY sb.subject_id, sb.subject_name
-) AS sbb;
+SELECT s.subject_name, p.first_name, p.last_name, g.grade_value AS max_grade
+FROM grades g
+JOIN groups gp ON g.group_id = gp.group_id 
+JOIN subjects s ON gp.subject_id = s.subject_id 
+JOIN students st ON g.student_id = st.student_id 
+JOIN people p ON p.person_id = st.student_id 
+JOIN (
+	SELECT gp2.subject_id, MAX(g2.grade_value) AS top_grade
+	FROM grades g2 
+	JOIN groups gp2 ON g2.group_id = gp2.group_id 
+	GROUP BY gp2.subject_id
+) max_sub ON max_sub.subject_id = s.subject_id 
+		 AND max_sub.top_grade = g.grade_value;
+
+
+-- 6. Grupos ordenados por número de estudiantes matriculados.
+--	A. selec: nombre grupo, COUNT(id estudiante)
+-- 	B. relaciones: groups, group_enrollments
+--  C. agrupar por: id grupo, nombre grupo
+--  D. ordenar por: contador DESC
+SELECT g.group_id , g.group_name, g.activity, COUNT(DISTINCT ge.student_id) AS total_students
+FROM groups g
+LEFT JOIN group_enrollments ge ON g.group_id = ge.group_id
+GROUP BY g.group_id, g.group_name 
+ORDER BY total_students DESC;
+
+-- 7. Profesores con carga docente superior a 15 créditos.
+
+
+
 
 
 
